@@ -345,3 +345,145 @@ let global_ekikan_list = [
   {kiten="営団赤塚"; shuten="営団成増"; keiyu="有楽町線"; kyori=1.5; jikan=2};
   {kiten="営団成増"; shuten="和光市"; keiyu="有楽町線"; kyori=2.1; jikan=3};
 ]
+
+let rec romaji_to_kanji romaji lst = match lst with
+    [] -> ""
+  | first :: rest -> if romaji = first.romaji
+    then first.kanji
+    else romaji_to_kanji romaji rest
+
+let romaji_to_kanji_test1 = romaji_to_kanji "myogadani" global_ekimei_list = "茗荷谷"
+
+let rec get_ekikan_kyori eki1 eki2 ekikan_lst = match ekikan_lst with
+    [] -> infinity
+  | first :: rest ->
+    if first.kiten = eki1 && first.shuten = eki2 then first.kyori
+    else if first.kiten = eki2 && first.shuten = eki1 then first.kyori
+    else get_ekikan_kyori eki1 eki2 rest
+
+let get_ekikan_kyori_test1 = get_ekikan_kyori "茗荷谷" "新大塚" global_ekikan_list = 1.2
+
+let kyori_wo_hyoji roma_eki1 roma_eki2 =
+  let kanji_eki1 = romaji_to_kanji roma_eki1 global_ekimei_list in
+  let kanji_eki2 = romaji_to_kanji roma_eki2 global_ekimei_list in
+  if kanji_eki1 = "" then roma_eki1 ^ " という駅は存在しません"
+  else if kanji_eki2 = "" then roma_eki2 ^ " という駅は存在しません"
+  else
+    let kyori = get_ekikan_kyori kanji_eki1 kanji_eki2 global_ekikan_list in
+    if kyori = infinity
+    then kanji_eki1 ^ "と" ^ kanji_eki2 ^ "はつながっていません"
+    else kanji_eki1 ^ "から" ^ kanji_eki2 ^ "までは " ^ string_of_float kyori ^ " kmです"
+
+let kyori_wo_hyoji_test1 = kyori_wo_hyoji "myougadani" "shinotsuka" = "myougadani という駅は存在しません"
+let kyori_wo_hyoji_test2 = kyori_wo_hyoji "myogadani" "shinotsuka" = "茗荷谷から新大塚までは 1.2 kmです"
+let kyori_wo_hyoji_test3 = kyori_wo_hyoji "myogadani" "ikebukuro" = "茗荷谷と池袋はつながっていません"
+let kyori_wo_hyoji_test4 = kyori_wo_hyoji "tokyo" "ootemachi" = "ootemachi という駅は存在しません"
+let kyori_wo_hyoji_test5 = kyori_wo_hyoji "tokyo" "otemachi" = "東京から大手町までは 0.6 kmです"
+
+type eki_t = {
+  namae: string;                (* 駅名 *)
+  saitan_kyori: float;          (* 最短距離 *)
+  temae_list: string list;      (* 駅名のリスト *)
+}
+
+let rec make_eki_list lst = match lst with
+    [] -> []
+  | first :: rest ->
+    {namae=first.kanji; saitan_kyori=infinity; temae_list=[]} :: make_eki_list rest
+
+let rec shokika starting_point lst = match lst with
+    [] -> []
+  | first :: rest ->
+    if starting_point = first.namae
+    then {namae=first.namae; saitan_kyori=0.; temae_list=[first.namae]}
+         :: shokika starting_point rest
+    else first :: shokika starting_point rest
+
+let shokika_test1 = shokika "茗荷谷" [] = []
+let shokika_test2 =
+  shokika "茗荷谷"
+    [{namae="池袋"; saitan_kyori = infinity; temae_list = []};
+     {namae="新大塚"; saitan_kyori = infinity; temae_list = []};
+     {namae="茗荷谷"; saitan_kyori = infinity; temae_list = []};
+     {namae="後楽園"; saitan_kyori = infinity; temae_list = []};
+     {namae="本郷三丁目"; saitan_kyori = infinity; temae_list = []};
+     {namae="御茶ノ水"; saitan_kyori = infinity; temae_list = []}] =
+  [{namae="池袋"; saitan_kyori = infinity; temae_list = []};
+   {namae="新大塚"; saitan_kyori = infinity; temae_list = []};
+   {namae="茗荷谷"; saitan_kyori = 0.; temae_list = ["茗荷谷"]};
+   {namae="後楽園"; saitan_kyori = infinity; temae_list = []};
+   {namae="本郷三丁目"; saitan_kyori = infinity; temae_list = []};
+   {namae="御茶ノ水"; saitan_kyori = infinity; temae_list = []}]
+
+let rec ekimei_insert lst ekimei0 = match lst with
+    [] -> [ekimei0]
+  | ekimei :: rest ->
+    if ekimei.kana = ekimei0.kana then ekimei_insert rest ekimei0
+    else if ekimei.kana < ekimei0.kana then ekimei :: ekimei_insert rest ekimei0
+    else ekimei0 :: lst
+
+let ekimei_insert_test1 = ekimei_insert [] {kanji="茗荷谷"; kana="みょうがだに"; romaji="myogadani"; shozoku="丸ノ内線"}
+	                        = [{kanji="茗荷谷"; kana="みょうがだに"; romaji="myogadani"; shozoku="丸ノ内線"}]
+let ekimei_insert_test2 = ekimei_insert [
+	  {kanji="池袋"; kana="いけぶくろ"; romaji="ikebukuro"; shozoku="丸ノ内線"};
+	  {kanji="御茶ノ水"; kana="おちゃのみず"; romaji="ochanomizu"; shozoku="丸ノ内線"};
+	  {kanji="新大塚"; kana="しんおおつか"; romaji="shinotsuka"; shozoku="丸ノ内線"};
+	  {kanji="本郷三丁目"; kana="ほんごうさんちょうめ"; romaji="hongosanchome"; shozoku="丸ノ内線"};
+	  {kanji="茗荷谷"; kana="みょうがだに"; romaji="myogadani"; shozoku="丸ノ内線"}]
+	  {kanji="後楽園"; kana="こうらくえん"; romaji="korakuen"; shozoku="丸ノ内線"}
+                          = [{kanji="池袋"; kana="いけぶくろ"; romaji="ikebukuro"; shozoku="丸ノ内線"};
+                             {kanji="御茶ノ水"; kana="おちゃのみず"; romaji="ochanomizu"; shozoku="丸ノ内線"};
+                             {kanji="後楽園"; kana="こうらくえん"; romaji="korakuen"; shozoku="丸ノ内線"};
+                             {kanji="新大塚"; kana="しんおおつか"; romaji="shinotsuka"; shozoku="丸ノ内線"};
+                             {kanji="本郷三丁目"; kana="ほんごうさんちょうめ"; romaji="hongosanchome"; shozoku="丸ノ内線"};
+                             {kanji="茗荷谷"; kana="みょうがだに"; romaji="myogadani"; shozoku="丸ノ内線"}]
+
+let rec seiretsu ekimei_list = match ekimei_list with
+    [] -> []
+  | first :: rest -> ekimei_insert (seiretsu rest) first
+
+(* テスト *)
+let test_ekimei_list = [{kanji="池袋"; kana="いけぶくろ"; romaji="ikebukuro"; shozoku="丸ノ内線"};
+                        {kanji="新大塚"; kana="しんおおつか"; romaji="shinotsuka"; shozoku="丸ノ内線"};
+                        {kanji="茗荷谷"; kana="みょうがだに"; romaji="myogadani"; shozoku="丸ノ内線"};
+                        {kanji="後楽園"; kana="こうらくえん"; romaji="korakuen"; shozoku="丸ノ内線"};
+                        {kanji="本郷三丁目"; kana="ほんごうさんちょうめ"; romaji="hongosanchome"; shozoku="丸ノ内線"};
+                        {kanji="御茶ノ水"; kana="おちゃのみず"; romaji="ochanomizu"; shozoku="丸ノ内線"}]
+
+let test3 = seiretsu [] = []
+let test4 = seiretsu test_ekimei_list = [{kanji="池袋"; kana="いけぶくろ"; romaji="ikebukuro"; shozoku="丸ノ内線"};
+                                         {kanji="御茶ノ水"; kana="おちゃのみず"; romaji="ochanomizu"; shozoku="丸ノ内線"};
+                                         {kanji="後楽園"; kana="こうらくえん"; romaji="korakuen"; shozoku="丸ノ内線"};
+                                         {kanji="新大塚"; kana="しんおおつか"; romaji="shinotsuka"; shozoku="丸ノ内線"};
+                                         {kanji="本郷三丁目"; kana="ほんごうさんちょうめ"; romaji="hongosanchome"; shozoku="丸ノ内線"};
+                                         {kanji="茗荷谷"; kana="みょうがだに"; romaji="myogadani"; shozoku="丸ノ内線"}]
+
+(* 駅の例 *)
+let eki1 = {namae="池袋"; saitan_kyori = infinity; temae_list = []}
+let eki2 = {namae="新大塚"; saitan_kyori = 1.2; temae_list = ["新大塚"; "茗荷谷"]}
+let eki3 = {namae="茗荷谷"; saitan_kyori = 0.; temae_list = ["茗荷谷"]}
+let eki4 = {namae="後楽園"; saitan_kyori = infinity; temae_list = []}
+
+(* 目的：未確定の駅 q を必要に応じて更新した駅を返す *)
+(* koushin1 : eki_t -> eki_t -> eki_t *)
+let koushin1 p q =
+    let kyori = get_ekikan_kyori p.namae q.namae global_ekikan_list in
+    if kyori = infinity
+    then q
+    else if p.saitan_kyori +. kyori < q.saitan_kyori
+    then {namae = q.namae; saitan_kyori = p.saitan_kyori +. kyori; temae_list = q.namae :: p.temae_list}
+    else q
+
+(* テスト *)
+let koushin1_test1 = koushin1 eki3 eki1 = eki1
+let koushin1_test2 = koushin1 eki3 eki2 = eki2
+let koushin1_test3 = koushin1 eki3 eki3 = eki3
+let koushin1_test4 = koushin1 eki3 eki4 = {namae="後楽園"; saitan_kyori = 1.8; temae_list = ["後楽園"; "茗荷谷"]}
+let koushin1_test5 = koushin1 eki2 eki1 = {namae="池袋"; saitan_kyori = 3.0; temae_list = ["池袋"; "新大塚"; "茗荷谷"]}
+let koushin1_test6 = koushin1 eki2 eki2 = eki2
+let koushin1_test7 = koushin1 eki2 eki3 = eki3
+let koushin1_test8 = koushin1 eki2 eki4 = eki4
+
+let koushin p v =
+  let f q = koushin1 p q in
+  List.map f v

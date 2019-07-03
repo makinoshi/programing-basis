@@ -34,23 +34,35 @@ let rec concat lst = match lst with
 let test_concat1 = concat [] = ""
 let test_concat1 = concat ["春"; "夏"; "秋" ; "冬"] = "春夏秋冬"
 
-type person_t = {
-  height : int;
-  weight : int;
-  birthday : string;
-  blood_type : string;
-}
+let rec add_to_each n lst = match lst with
+    [] -> []
+  | first :: rest -> (n :: first) :: add_to_each n rest
 
-let person1 = {height = 160; weight = 55; birthday = "0601"; blood_type = "A"}
-let person2 = {height = 170; weight = 60; birthday = "0701"; blood_type = "B"}
-let person3 = {height = 180; weight = 70; birthday = "0801"; blood_type = "O"}
+let add_to_each_test1 = add_to_each 1 [] = []
+let add_to_each_test2 = add_to_each 1 [[2]] = [[1; 2]]
+let add_to_each_test3 = add_to_each 1 [[2]; [2; 3]] = [[1; 2]; [1; 2; 3]]
 
-let rec count_ketsueki_A lst = match lst with
-    [] -> 0
-  | {blood_type = b} :: rest
-    -> if b = "A"
-    then 1 + count_ketsueki_A rest
-    else count_ketsueki_A rest
+let rec prefix lst = match lst with
+    [] -> []
+  | first :: rest -> [first] :: add_to_each first (prefix rest)
 
-let count_ketsueki_A_test = count_ketsueki_A [] = 0
-let count_ketsueki_A_test = count_ketsueki_A [person1; person2; person3] = 1
+let prefix_test1 = prefix [] = []
+let prefix_test2 = prefix [1] = [[1]]
+let prefix_test3 = prefix [1; 2] = [[1]; [1; 2]]
+let prefix_test4 = prefix [1; 2; 3] = [[1]; [1; 2]; [1; 2; 3]]
+
+let rec insert n lst = match lst with
+    [] -> [n]
+  | first :: rest -> if n < first
+    then n :: first :: rest
+    else first :: insert n rest
+
+let insert_test1 = insert 1 [] = [1]
+let insert_test2 = insert 5 [1; 3; 4; 7; 8] = [1; 3; 4; 5; 7; 8]
+let insert_test2 = insert 0 [1; 3; 4; 7; 8] = [0; 1; 3; 4; 7; 8]
+
+let rec ins_sort lst = match lst with
+    [] -> []
+  | first :: rest -> insert first (ins_sort rest)
+
+let ins_sort_test1 = ins_sort [5; 3; 8; 1; 7; 4] = [1; 3; 4; 5; 7; 8]
