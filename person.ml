@@ -12,12 +12,18 @@ let person1 = {name = "浅井"; shincho = 1.72; taiju = 58.5; tsuki = 9; hi = 17
 let person2 = {name = "宮原"; shincho = 1.63; taiju = 55.0; tsuki = 6; hi = 30; ketsueki = "B"}
 let person3 = {name = "中村"; shincho = 1.68; taiju = 63.0; tsuki = 6; hi = 6; ketsueki = "O"}
 
-let rec count_ketsueki_A lst = match lst with
-    [] -> 0
-  | {ketsueki = b} :: rest
-    -> if b = "A"
-    then 1 + count_ketsueki_A rest
-    else count_ketsueki_A rest
+(* let rec count_ketsueki_A lst = match lst with
+ *     [] -> 0
+ *   | {ketsueki = b} :: rest
+ *     -> if b = "A"
+ *     then 1 + count_ketsueki_A rest
+ *     else count_ketsueki_A rest *)
+
+let is_ketsueki_A p = p.ketsueki = "A"
+
+let count_ketsueki_A lst =
+  List.filter is_ketsueki_A lst
+  |> List.length
 
 let count_ketsueki_A_test = count_ketsueki_A [] = 0
 let count_ketsueki_A_test = count_ketsueki_A [person1; person2; person3] = 1

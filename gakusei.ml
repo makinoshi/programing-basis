@@ -68,3 +68,22 @@ let rec shukei lst = match lst with
     else if first.seiseki = "B" then (a, b + 1, c, d)
     else if first.seiseki = "C" then (a, b, c + 1, d)
     else (a, b, c, d + 1)
+
+let gakusei_sum lst =
+  let f g sum = g.tensuu + sum in
+  List.fold_right f lst 0
+
+(* gakusei_t list 型のデータの例 *)
+let lst1 = []
+let lst2 = [{namae = "asai"; tensuu = 70; seiseki = "B"}]
+let lst3 = [{namae = "asai"; tensuu = 70; seiseki = "B"};
+            {namae = "kaneko"; tensuu = 85; seiseki = "A"}]
+let lst4 = [{namae = "yoshida"; tensuu = 80; seiseki = "A"};
+            {namae = "asai"; tensuu = 70; seiseki = "B"};
+            {namae = "kaneko"; tensuu = 85; seiseki = "A"}]
+
+(* テスト *)
+let gakusei_sum_test1 = gakusei_sum lst1 = 0
+let gakusei_sum_test2 = gakusei_sum lst2 = 70
+let gakusei_sum_test3 = gakusei_sum lst3 = 155
+let gakusei_sum_test4 = gakusei_sum lst4 = 235

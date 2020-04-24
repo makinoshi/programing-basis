@@ -16,20 +16,30 @@ let test_length2 = length [2] = 1
 let test_length3 = length [1; 3] = 2
 let test_length4 = length [1; 2; 3; 4; 5; 6; 7; 8; 9; 10] = 10
 
-let rec even lst = match lst with
-    [] -> []
-  | first :: rest -> if first mod 2 = 0
-    then first :: even rest
-    else even rest
+(* let rec even lst = match lst with
+ *     [] -> []
+ *   | first :: rest -> if first mod 2 = 0
+ *     then first :: even rest
+ *     else even rest *)
+
+let is_even n = n mod 2 = 0
+
+let even lst = List.filter is_even lst
 
 let test_even1 = even [] = []
 let test_even2 = even [2] = [2]
 let test_even3 = even [1; 3] = []
 let test_even4 = even [1; 2; 3; 4; 5; 6; 7; 8; 9; 10] = [2; 4; 6; 8; 10]
 
-let rec concat lst = match lst with
-    [] -> ""
-  | first :: rest -> first ^ concat rest
+(* let rec concat lst = match lst with
+ *     [] -> ""
+ *   | first :: rest -> first ^ concat rest *)
+
+(* let concat lst =
+ *   let f s s_rest = s ^ s_rest in
+ *   List.fold_right f lst "" *)
+
+let concat lst = List.fold_right ( ^ ) lst ""
 
 let test_concat1 = concat [] = ""
 let test_concat1 = concat ["春"; "夏"; "秋" ; "冬"] = "春夏秋冬"
